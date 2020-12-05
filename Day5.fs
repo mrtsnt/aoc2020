@@ -18,5 +18,4 @@ let solve2 data =
         match ls with
         | [] -> failwith "end of list"
         | x::xs -> if prev + 1 = x then find xs x else x - 1
-    let minElement = sorted |> List.min
-    find sorted <| minElement - 1
+    find sorted <| sorted.[0] - 1
