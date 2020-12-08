@@ -43,12 +43,12 @@ let solve2 (data : Instruction []) =
                 Some copy
             | _ -> None) data
         |> Array.choose id
-    let rec terminates visited acc pos permutation =
+    let rec terminatesAt visited acc pos permutation =
         if pos = Array.length permutation then Some acc
         elif List.contains pos visited then None
         else
             match permutation.[pos] with
-            | Nop _ -> terminates (pos::visited) acc (pos + 1) permutation
-            | Jump offset -> terminates (pos::visited) acc (pos + offset) permutation
-            | Acc n -> terminates (pos::visited) (acc + n) (pos + 1) permutation
-    permutations |> Array.map (terminates [] 0 0) |> Array.choose id |> Array.item 0
+            | Nop _ -> terminatesAt (pos::visited) acc (pos + 1) permutation
+            | Jump offset -> terminatesAt (pos::visited) acc (pos + offset) permutation
+            | Acc n -> terminatesAt (pos::visited) (acc + n) (pos + 1) permutation
+    permutations |> Array.map (terminatesAt [] 0 0) |> Array.choose id |> Array.item 0
