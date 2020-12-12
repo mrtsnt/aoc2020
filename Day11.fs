@@ -64,7 +64,6 @@ let solve getTakenSeats tolerance (data : Tile [] [])  =
         let newGrid = deepCopy grid
         allPoints |> List.iter (fun (x, y) ->
             match newGrid.[y].[x] with
-            | Floor -> ()
             | Empty when countSeats x y grid = 0 ->
                 newGrid.[y].[x] <- Taken
             | Taken when countSeats x y grid >= tolerance ->
