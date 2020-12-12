@@ -35,10 +35,10 @@ let data =
 
 let moveSimple (x, y) m =
     match m with 
-    | East n -> (x + n, y)
-    | West n -> (x - n, y)
-    | North n -> (x, y + n)
-    | South n -> (x, y - n)
+    | East n -> x + n, y
+    | West n -> x - n, y
+    | North n -> x, y + n
+    | South n -> x, y - n
 
 let solve1 data =
 
@@ -60,22 +60,22 @@ let solve1 data =
 
     let rec executeInstruction (deg, coords) m  =
         match m with
-        | DirectionalMove dm -> (deg, moveSimple coords dm)
-        | RotationalMove rm -> (rotateShip rm deg, coords)
-        | ForwardMove n -> (deg, moveInDirection n deg coords)
+        | DirectionalMove dm -> deg, moveSimple coords dm
+        | RotationalMove rm -> rotateShip rm deg, coords
+        | ForwardMove n -> deg, moveInDirection n deg coords
 
     data 
     |> List.fold executeInstruction (90, (0, 0)) 
     |> snd 
-    |> (fun (x, y) -> abs x + abs y)
+    |> fun (x, y) -> abs x + abs y
 
 let solve2 data = 
 
-    let moveToWaypoint (wx, wy) (sx, sy) n = (sx + wx * n, sy + wy * n)
+    let moveToWaypoint (wx, wy) (sx, sy) n = sx + wx * n, sy + wy * n
 
     let rotateWaypoint coords m =
         let rec rotateRight (x, y) n =
-            if n = 0 then (x, y)
+            if n = 0 then x, y
             else rotateRight (y, -x) <| n - 1
 
         match m with 
@@ -84,9 +84,9 @@ let solve2 data =
 
     let executeInstruction (wCoords, sCoords) m =
         match m with
-        | DirectionalMove dm -> ((moveSimple wCoords dm), sCoords)
-        | RotationalMove rm -> ((rotateWaypoint wCoords rm), sCoords)
-        | ForwardMove n -> (wCoords, moveToWaypoint wCoords sCoords n)
+        | DirectionalMove dm -> moveSimple wCoords dm, sCoords
+        | RotationalMove rm -> rotateWaypoint wCoords rm, sCoords
+        | ForwardMove n -> wCoords, moveToWaypoint wCoords sCoords n
 
     data 
     |> List.fold executeInstruction ((10, 1), (0, 0))
