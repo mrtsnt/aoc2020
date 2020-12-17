@@ -3,7 +3,7 @@ module Day1
 open System
 open System.IO
 
-let getData () = 
+let data = 
     File.ReadAllLines("data/day1")
     |> Array.map Int32.Parse
     |> List.ofArray

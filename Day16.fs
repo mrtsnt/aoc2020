@@ -8,7 +8,7 @@ type Rule = { Name : string; Ranges : (int64 * int64) list }
 type Data = { Rules : Rule list; Ticket : int64 []; OtherTickets : int64 [] [] }
 
 let data = 
-    let blocks = File.ReadAllText("data/data16").Split("\n\n")
+    let blocks = File.ReadAllText("data/day16").Split("\n\n")
 
     let rules = 
         blocks.[0].Split("\n")
