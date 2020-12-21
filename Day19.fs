@@ -27,8 +27,7 @@ let data =
         |> Array.filter (fun r -> r <> "")
         |> Array.map (fun r ->
             match r with
-            | Parse """^(\d+): "(\w)"\s*$""" ms -> 
-                (Int32.Parse ms.[0].Value, Character(ms.[1].Value))
+            | Parse """^(\d+): "(\w)"\s*$""" ms -> (Int32.Parse ms.[0].Value, Character(ms.[1].Value))
             | Parse "^(\d+):(\s*\d+\s*)+\|(\s*\d+\s*)+$" ms ->
                 let ruleNum = Int32.Parse ms.[0].Value 
                 (ruleNum, Double(cpsToInts ms.[1].Captures, cpsToInts ms.[2].Captures))
@@ -38,8 +37,7 @@ let data =
             | r -> sprintf "can't parse: %A" r |> failwith)
     { Rules = rules |> Map.ofArray; Strings = blocks.[1].Split("\n")}
 
-let solve1 data = 
-
+let createFollower data = 
     let rec follow rules collector = 
         match rules with
         | [x] ->
@@ -53,9 +51,25 @@ let solve1 data =
             | Double(fs, sn) -> follow xs ([fs; sn] |> List.collect (fun rls -> follow rls collector))
             | Single rs -> follow xs (follow rs collector)
         | [] -> sprintf "shouldn't be here - %A" rules |> failwith
-    
+    follow
+
+let solve1 data = 
+
+    let follow = createFollower data
     let (Single rls) = data.Rules.[0]
     let permutations = follow rls [""]
+
     data.Strings
     |> Array.filter (fun str -> List.contains str permutations)
+    |> Array.length
+
+let solve2 data = 
+
+    let follow = createFollower data
+    let match42 = String.Join("|", follow [42] [""])
+    let match31 = String.Join("|", follow [31] [""])
+    let rgs = [0..5] |> List.map (fun i -> Regex(sprintf "^(?:%s){%d,}(?:%s){%d}$" match42 (2 + i) match31 (1 + i)))
+
+    data.Strings
+    |> Array.filter (fun r -> rgs |> List.fold (fun s (rgx : Regex) -> s || rgx.IsMatch(r)) false)
     |> Array.length
