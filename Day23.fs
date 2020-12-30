@@ -6,10 +6,6 @@ let split n =
         else (n % 10)::(split' <| n / 10)
     split' n |> List.rev
 
-type Cup = 
-    { Label : int
-      mutable Next : Cup option }
-
 let solve1 data =
 
     let cups = split data
@@ -49,76 +45,69 @@ let solve1 data =
     |> Seq.take 8
     |> Seq.fold (fun s i -> sprintf "%s%d" s i) ""
 
+type Cup = 
+    { Label : int
+      mutable Next : Cup option }
 
-let cupsFromArr (ns : int []) = 
-    let fs = { Label = ns.[0]; Next = None }
-    let mutable hd = fs
-    for i in [1..(ns.Length - 1)] do
-        hd.Next <- Some { Label = ns.[i]; Next = None }
-        hd <- hd.Next.Value
-    hd.Next <- Some fs
-    fs
+let solve2 data =
 
-let remove3 (cups : Cup) =
-    let mutable hd = cups
+    let cupsFromArr (ns : int []) = 
+        let fs = { Label = ns.[0]; Next = None }
+        let mutable hd = fs
+        for i in [1..(ns.Length - 1)] do
+            hd.Next <- Some { Label = ns.[i]; Next = None }
+            hd <- hd.Next.Value
+        hd.Next <- Some fs
+        fs
 
-    let removed = hd.Next
-    let newStart = hd
-    for _ in [0..2] do hd <- hd.Next.Value
-    newStart.Next <- hd.Next
+    let remove3 (cups : Cup) =
+        let mutable hd = cups
 
-    hd <- removed.Value
-    for _ in [0..1] do hd <- hd.Next.Value
-    hd.Next <- None
+        let removed = hd.Next
+        let newStart = hd
+        for _ in [0..2] do hd <- hd.Next.Value
+        newStart.Next <- hd.Next
 
-    removed.Value
+        hd <- removed.Value
+        for _ in [0..1] do hd <- hd.Next.Value
+        hd.Next <- None
 
-let contains (cups : Cup) lbl =
-    let mutable hd = cups
-    while Option.isSome hd.Next && hd.Label <> lbl do
-        hd <- hd.Next.Value
-    hd.Label = lbl
+        removed.Value
 
-let printCups (cups : Cup) max =
-    let mutable i = 0
-    let mutable hd = Some cups
-    while i <= max && Option.isSome hd do
-        printf " %d" hd.Value.Label
-        i <- i + 1
-        hd <- hd.Value.Next
-    printf "\n"
+    let contains (cups : Cup) lbl =
+        let mutable hd = cups
+        while Option.isSome hd.Next && hd.Label <> lbl do
+            hd <- hd.Next.Value
+        hd.Label = lbl
 
-let cupsToIndex (cups : Cup) n =
-    let mutable idx = Array.create<Cup option> n None
-    let mutable hd = cups
-    for i in [0..(n - 1)] do
-        idx.[i] <- Some hd
-        hd <- hd.Next.Value
-    Array.sortBy (fun (c : Cup option) -> c.Value.Label) idx
+    let cupsToIndex (cups : Cup) n =
+        let mutable idx = Array.create<Cup option> n None
+        let mutable hd = cups
+        for i in [0..(n - 1)] do
+            idx.[i] <- Some hd
+            hd <- hd.Next.Value
+        Array.sortBy (fun (c : Cup option) -> c.Value.Label) idx
 
-let insertAfter (cups : Cup) (picked : Cup) =
-    let mutable hd = cups
-    let next = hd.Next.Value
-    hd.Next <- Some picked
+    let insertAfter (cups : Cup) (picked : Cup) =
+        let mutable hd = cups
+        let next = hd.Next.Value
+        hd.Next <- Some picked
 
-    while Option.isSome hd.Next do hd <- hd.Next.Value
-    hd.Next <- Some next
+        while Option.isSome hd.Next do hd <- hd.Next.Value
+        hd.Next <- Some next
 
-let rec findDest (idx : Cup option []) lbl picked = 
-    match lbl with
-    | 0 -> findDest idx idx.Length picked
-    | dest when contains picked dest -> findDest idx (lbl - 1) picked
-    | dest -> idx.[dest - 1]
+    let rec findDest (idx : Cup option []) lbl picked = 
+        match lbl with
+        | 0 -> findDest idx idx.Length picked
+        | dest when contains picked dest -> findDest idx (lbl - 1) picked
+        | dest -> idx.[dest - 1]
 
-let data = Array.append [|3;8;9;1;2;5;4;6;7|] [|10..1_000_000|]
+    let cupData = Array.append (split data |> Array.ofList) [|10..1_000_000|]
 
-let solve2 (data : int []) =
-
-    let mutable cups, i = cupsFromArr data, 0
-    let idx = cupsToIndex cups data.Length
+    let mutable cups, i = cupsFromArr cupData, 0
+    let idx = cupsToIndex cups cupData.Length
 
     while i < 10_000_000 do
-        if i % 100_000 = 0 then printfn "%d" i
         let picked = remove3 cups
         let dest = (findDest idx (cups.Label - 1) picked).Value
         insertAfter dest picked
@@ -126,6 +115,4 @@ let solve2 (data : int []) =
         i <- i + 1
 
     while cups.Label <> 1 do cups <- cups.Next.Value
-    cups
-
-printCups (solve2 data) 8
+    (int64 cups.Next.Value.Label) * (int64 cups.Next.Value.Next.Value.Label)
