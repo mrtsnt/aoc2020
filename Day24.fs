@@ -54,31 +54,32 @@ let solve2 data =
     let getNeighbours (x, y, z) =
         [(x + 1, y - 1, z); (x + 1, y, z - 1); (x, y + 1, z - 1);
          (x - 1, y + 1, z); (x - 1, y, z + 1); (x, y - 1, z + 1)]
+        |> Set.ofList
 
     let passDay blackTiles =
 
         let allRelevantTiles = 
-            List.append blackTiles (blackTiles |> List.collect getNeighbours)
-            |> List.distinct
+            blackTiles 
+            |> Seq.map getNeighbours 
+            |> Set.unionMany
+            |> Set.union blackTiles
 
-        allRelevantTiles |> List.map (fun coords ->
+        allRelevantTiles |> Seq.map (fun coords ->
             let blackNeighbours = 
                 getNeighbours coords
-                |> List.filter (fun co -> List.contains co blackTiles) 
-                |> List.length
-            if List.contains coords blackTiles then
+                |> Set.filter (fun co -> Set.contains co blackTiles) 
+                |> Set.count
+            if Set.contains coords blackTiles then
                 if blackNeighbours = 1 || blackNeighbours = 2 then (coords, true)
                 else (coords, false)
             else 
                 if blackNeighbours = 2 then (coords, true) else (coords, false))
-        |> List.filter snd
-        |> List.map fst
+        |> Seq.filter snd
+        |> Seq.map fst
+        |> Set.ofSeq
 
     let rec passDays blackTiles n =
-        printfn "day %d, cnt:%d" n (List.length blackTiles)
-        if n = 100 then blackTiles |> List.length
+        if n = 100 then blackTiles |> Set.count
         else passDays (passDay blackTiles) (n + 1)
 
-    passDays initialCoords 0
-
-solve2 data
+    passDays (initialCoords |> Set.ofList) 0
